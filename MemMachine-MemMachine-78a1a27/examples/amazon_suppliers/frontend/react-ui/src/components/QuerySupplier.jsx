@@ -1,7 +1,9 @@
 import { useState } from 'react';
-import { Send, Loader2, AlertCircle, ChevronDown, ChevronUp, FileText, Lightbulb, User, Clock } from 'lucide-react';
+import { Send, Loader2, AlertCircle, ChevronDown, ChevronUp, FileText, Lightbulb, User, Clock, Sparkles } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { supplierApi } from '../services/api';
+import MemoryTimeline from './MemoryTimeline';
+import SystemStatus from './SystemStatus';
 
 function QuerySupplier({ modelId, queryHistory, setQueryHistory }) {
   const [query, setQuery] = useState('');
@@ -10,6 +12,62 @@ function QuerySupplier({ modelId, queryHistory, setQueryHistory }) {
   const [error, setError] = useState(null);
   const [showRawData, setShowRawData] = useState(false);
   const [showEpisodicMemory, setShowEpisodicMemory] = useState(false);
+  const [timelineEvents, setTimelineEvents] = useState([]);
+  const quickPrompts = [
+    'Summarize the latest updates for supplier SUP-001 and highlight risks.',
+    'What strategic follow-ups should we schedule for TechGlobal Electronics?',
+    'Compare the delivery performance of our top suppliers over the last quarter.',
+    'Remind me of any outstanding issues or escalations for Premium Apparel Co.',
+    'Give me key profile facts about supplier SUP-005 before my call.',
+  ];
+
+  const buildTimelineEvents = (contextData) => {
+    if (!contextData) {
+      return [];
+    }
+
+    const events = [];
+
+    const ingestEpisode = (episode) => {
+      if (!episode || typeof episode !== 'object') {
+        return;
+      }
+
+      const metadata = episode.metadata || episode.user_metadata || {};
+      const baseContent = episode.summary || episode.content || episode.episode_content || episode.text || '';
+      const timestamp = episode.timestamp || metadata.timestamp || metadata.created_at || metadata.interaction_date || null;
+      const score = typeof episode.score === 'number' ? episode.score : typeof episode.similarity === 'number' ? episode.similarity : undefined;
+      const type = metadata.data_type || episode.episode_type || episode.type || undefined;
+
+      events.push({
+        timestamp,
+        content: baseContent,
+        summary: baseContent,
+        metadata,
+        score,
+        type,
+      });
+    };
+
+    const iterate = (value) => {
+      if (!value) return;
+      if (Array.isArray(value)) {
+        value.forEach(iterate);
+        return;
+      }
+      ingestEpisode(value);
+    };
+
+    iterate(contextData);
+
+    return events
+      .filter((event) => event.content)
+      .sort((a, b) => {
+        const aTime = a.timestamp ? new Date(a.timestamp).getTime() : 0;
+        const bTime = b.timestamp ? new Date(b.timestamp).getTime() : 0;
+        return bTime - aTime;
+      });
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -21,6 +79,7 @@ function QuerySupplier({ modelId, queryHistory, setQueryHistory }) {
     setLoading(true);
     setError(null);
     setResponse(null);
+    setTimelineEvents([]);
 
     try {
       // Step 1: Query supplier to get memory data
@@ -62,6 +121,9 @@ function QuerySupplier({ modelId, queryHistory, setQueryHistory }) {
         // Don't throw - show the response we created above
         return;
       }
+
+      const episodicContext = queryResult?.data?.context;
+      setTimelineEvents(buildTimelineEvents(episodicContext));
 
       setResponse({
         supplierId,
@@ -436,13 +498,45 @@ function QuerySupplier({ modelId, queryHistory, setQueryHistory }) {
     );
   };
 
+  const structuredResponse = response ? parseResponseSections(response.llmResponse || '', response) : null;
+
+  const handleQuickPrompt = (prompt) => {
+    setQuery(prompt);
+  };
+
   return (
     <div className="space-y-6">
+      <SystemStatus />
+
       <div className="card">
         <h2 className="card-header">Query Supplier Information</h2>
         <p className="card-subtitle">
           Enter your query about a supplier. The system will automatically identify the supplier from your query.
         </p>
+
+        <div className="bg-slate-50 border border-slate-200 rounded-lg px-4 py-3 mb-4">
+          <div className="flex items-start gap-3">
+            <div className="mt-1">
+              <Sparkles className="w-4 h-4 text-slate-500" />
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-semibold text-slate-700">Try a quick prompt</p>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {quickPrompts.map((prompt) => (
+                  <button
+                    key={prompt}
+                    type="button"
+                    onClick={() => handleQuickPrompt(prompt)}
+                    className="inline-flex items-center gap-2 rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 hover:border-slate-400 transition-colors"
+                  >
+                    <Sparkles className="w-4 h-4 text-slate-500" />
+                    {prompt}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
@@ -514,30 +608,38 @@ Tell me about the supplier we discussed last week"
             </div>
           )}
 
-          {parseResponseSections(response.llmResponse || '', response)}
+          <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1.8fr)_minmax(0,1fr)] gap-6 items-start">
+            <div className="space-y-6">
+              {structuredResponse}
 
-          <div className="card">
-            <button
-              onClick={() => setShowRawData(!showRawData)}
-                    className="flex items-center gap-2 text-sm font-semibold text-slate-700 hover:text-slate-900 transition-colors"
-            >
-              {showRawData ? (
-                <>
-                  <ChevronUp className="w-4 h-4" />
-                  Hide Raw Memory Data
-                </>
-              ) : (
-                <>
-                  <ChevronDown className="w-4 h-4" />
-                  Show Raw Memory Data
-                </>
-              )}
-            </button>
-            {showRawData && (
-              <pre className="mt-4 p-4 bg-gray-50 rounded-lg overflow-auto text-xs border border-gray-200 font-mono">
-                {JSON.stringify(response.queryResult, null, 2)}
-              </pre>
-            )}
+              <div className="card">
+                <button
+                  onClick={() => setShowRawData(!showRawData)}
+                  className="flex items-center gap-2 text-sm font-semibold text-slate-700 hover:text-slate-900 transition-colors"
+                >
+                  {showRawData ? (
+                    <>
+                      <ChevronUp className="w-4 h-4" />
+                      Hide Raw Memory Data
+                    </>
+                  ) : (
+                    <>
+                      <ChevronDown className="w-4 h-4" />
+                      Show Raw Memory Data
+                    </>
+                  )}
+                </button>
+                {showRawData && (
+                  <pre className="mt-4 p-4 bg-gray-50 rounded-lg overflow-auto text-xs border border-gray-200 font-mono">
+                    {JSON.stringify(response.queryResult, null, 2)}
+                  </pre>
+                )}
+              </div>
+            </div>
+
+            <div className="space-y-6">
+              <MemoryTimeline events={timelineEvents} />
+            </div>
           </div>
         </div>
       )}

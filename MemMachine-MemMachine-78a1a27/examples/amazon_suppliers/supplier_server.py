@@ -65,8 +65,33 @@ async def get_db_pool() -> asyncpg.Pool:
 async def startup_event():
     """Initialize database connection pool on startup"""
     try:
-        await get_db_pool()
+        pool = await get_db_pool()
         logger.info("Database connection pool initialized successfully")
+
+        # Auto-seed CRM supplier profiles if empty to ensure demo readiness
+        try:
+            async with pool.acquire() as conn:
+                supplier_count = await conn.fetchval("SELECT COUNT(*) FROM supplier_profiles")
+
+            if supplier_count == 0:
+                logger.info("Supplier CRM table empty – seeding sample suppliers for demo")
+                from add_sample_suppliers import SAMPLE_SUPPLIERS  # noqa: WPS433 (import inside function)
+
+                seeded = 0
+                for supplier in SAMPLE_SUPPLIERS:
+                    try:
+                        await upsert_supplier_profile(pool, supplier)
+                        seeded += 1
+                    except Exception as seed_err:  # pragma: no cover - best effort logging
+                        logger.warning(
+                            "Failed seeding supplier %s: %s",
+                            supplier.get("supplier_id", "unknown"),
+                            seed_err,
+                        )
+
+                logger.info("Seeded %s sample suppliers into CRM", seeded)
+        except Exception as seed_exception:  # pragma: no cover - seeding is best-effort
+            logger.warning("Supplier seeding skipped due to error: %s", seed_exception)
     except Exception as e:
         logger.warning(f"Database connection failed: {e}. CRM features will not be available. Please check PostgreSQL configuration.")
 
@@ -524,6 +549,46 @@ async def query_supplier(request: SupplierQueryRequest):
     except Exception as e:
         logger.exception(f"Error querying supplier: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/health")
+async def supplier_health():
+    """Return health information for the supplier service and dependencies."""
+
+    memmachine_health: dict[str, str | dict] = {"status": "unknown"}
+    try:
+        memmachine_response = requests.get(
+            f"{MEMORY_BACKEND_URL}/health", timeout=5
+        )
+        memmachine_response.raise_for_status()
+        memmachine_health = memmachine_response.json()
+        memmachine_health.setdefault("status", "healthy")
+    except requests.RequestException as exc:  # pragma: no cover - best effort
+        logger.warning("MemMachine health check failed: %s", exc)
+        memmachine_health = {"status": "unreachable", "detail": str(exc)}
+
+    db_status = "unknown"
+    db_error: str | None = None
+    try:
+        pool = await get_db_pool()
+        async with pool.acquire() as connection:
+            await connection.fetchval("SELECT 1")
+        db_status = "healthy"
+    except Exception as exc:  # pragma: no cover - dependent on environment
+        db_status = "unavailable"
+        db_error = str(exc)
+        logger.warning("PostgreSQL health check failed: %s", exc)
+
+    return {
+        "service": "amazon_supplier",
+        "status": "healthy"
+        if memmachine_health.get("status") == "healthy" and db_status == "healthy"
+        else "degraded",
+        "dependencies": {
+            "memmachine": memmachine_health,
+            "postgres": {"status": db_status, "detail": db_error},
+        },
+    }
 
 
 @app.post("/supplier/chat")
