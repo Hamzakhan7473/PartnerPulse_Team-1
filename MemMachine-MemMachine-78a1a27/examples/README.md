@@ -1,20 +1,40 @@
-# MemMachine Agents
+# MemMachine Examples
 
-This directory contains specialized AI agents that integrate with the MemMachine system. Each agent is designed to handle specific domains and use cases, providing tailored query construction and memory management capabilities. These agents leverage MemMachine's memory system to provide context-aware, personalized responses across various domains.
+This directory showcases how MemMachine powers complete, memory-aware agent experiences. Start with the flagship Amazon Suppliers demo, explore the LangChain adapters that back your own agents, then dive into the other reference services that reuse the same architecture.
 
-## Overview
+## Featured Demos
 
-The agents system is built on a modular architecture with:
-- **Base Query Constructor**: Abstract base class for all query constructors
-- **Specialized Agents**: Domain-specific implementations (CRM, Financial Analyst, Health Assistant, etc.)
-- **FastAPI Servers**: RESTful APIs for each agent with comprehensive endpoints
-- **Slack Integration**: Real-time communication capabilities for CRM workflows
-- **Streamlit Frontend**: Interactive web interface for testing and demonstration
+### Amazon Supplier Intelligence (`amazon_suppliers/`)
+- **What you get**: Production-style FastAPI + React + Tailwind stack that marries MemMachine episodic/profile memory with supplier CRM workflows and LangChain personas.
+- **Highlights**:
+  - Persona-aware prompts across Sales, Operations, and Leadership roles
+  - Retrieval-augmented briefings with in-browser Memory Timeline and System Status panels
+  - CLI utilities for scripted demos plus Swagger docs for every endpoint
+- **Runbook**: `amazon_suppliers/README.md` covers Docker startup, CLI recipes, architecture diagrams, and presentation tips.
 
-## Architecture
+### LangChain Integrations (`langchain/`)
+- **What you get**: Drop-in adapters, retrievers, and CLIs that persist LangChain sessions directly into MemMachine.
+- **Highlights**:
+  - `MemMachineChatMessageHistory` for durable RunnableWithMessageHistory chains
+  - `MemMachineRetriever` powering RetrievalQA with episodic context
+  - Persona, replay buffer, and leadership briefing scripts ready for demos or CI
+- **Runbook**: `langchain/README.md` details setup, persona flows, and evaluation strategy.
+
+## Directory Architecture
 
 ```
 examples/
+├── amazon_suppliers/                 # Full-stack supplier intelligence demo
+│   ├── README.md                     # Detailed setup, demo flow, architecture
+│   ├── supplier_server.py            # FastAPI backend integrating MemMachine
+│   └── frontend/react-ui/            # React + Tailwind dashboard
+│
+├── langchain/                        # LangChain integration helpers & demos
+│   ├── memmachine_memory.py          # BaseChatMessageHistory adapter
+│   ├── memmachine_retriever.py       # Custom RAG retriever
+│   ├── run_profile.py                # Persona CLI helper
+│   └── README.md                     # Setup instructions
+│
 ├── base_query_constructor.py         # Base class for query constructors
 ├── default_query_constructor.py      # Default/general-purpose query constructor
 ├── example_server.py                 # Example FastAPI server implementation
@@ -34,10 +54,6 @@ examples/
 │   ├── writing_assistant_server.py   # Writing assistant FastAPI server
 │   ├── README.md                     # Writing assistant-specific documentation
 │   └── query_constructor.py          # Writing query constructor
-├── langchain/                        # LangChain integration helpers & demos
-│   ├── memmachine_memory.py          # BaseChatMessageHistory adapter
-│   ├── demo_conversation.py          # RunnableWithMessageHistory example
-│   └── README.md                     # Setup instructions
 └── frontend/                         # Streamlit web interface
     ├── app.py                        # Main Streamlit application
     ├── llm.py                        # LLM integration
@@ -46,6 +62,15 @@ examples/
     └── styles.css                    # Custom styling
 
 ```
+
+## Overview
+
+The agents system is built on a modular architecture with:
+- **Base Query Constructor**: Abstract base class for all query constructors
+- **Specialized Agents**: Domain-specific implementations (CRM, Financial Analyst, Health Assistant, etc.)
+- **FastAPI Servers**: RESTful APIs for each agent with comprehensive endpoints
+- **Slack Integration**: Real-time communication capabilities for CRM workflows
+- **Streamlit Frontend**: Interactive web interface for testing and demonstration
 
 ## Connecting to MemMachine
 
