@@ -52,6 +52,12 @@ export const supplierApi = {
     const response = await api.get('/crm/suppliers', { params });
     return response.data;
   },
+
+  // Health checks
+  getSystemHealth: async () => {
+    const response = await api.get('/health');
+    return response.data;
+  },
 };
 
 export default api;

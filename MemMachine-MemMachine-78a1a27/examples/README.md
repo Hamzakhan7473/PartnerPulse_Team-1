@@ -34,6 +34,10 @@ examples/
 │   ├── writing_assistant_server.py   # Writing assistant FastAPI server
 │   ├── README.md                     # Writing assistant-specific documentation
 │   └── query_constructor.py          # Writing query constructor
+├── langchain/                        # LangChain integration helpers & demos
+│   ├── memmachine_memory.py          # BaseChatMessageHistory adapter
+│   ├── demo_conversation.py          # RunnableWithMessageHistory example
+│   └── README.md                     # Setup instructions
 └── frontend/                         # Streamlit web interface
     ├── app.py                        # Main Streamlit application
     ├── llm.py                        # LLM integration
@@ -103,7 +107,32 @@ If using Docker, make sure to use a local build image rather than the MemMachine
   - Use /submit command to easily submit writing samples
 - **Use Case**: Technical writers, content creators, professionals looking to maintain a consistent writing style.
 
-### 6. Streamlit Frontend (`frontend/`)
+### 6. LangChain Integration (`langchain/`)
+- **Purpose**: Demonstrate how to back LangChain workflows with MemMachine episodic memory
+- **Features**:
+  - `MemMachineChatMessageHistory` adapter for durable chat history
+  - Runnable demo using `RunnableWithMessageHistory`
+  - Optional hydration of previous sessions from the REST API
+  - Persona-specific system prompts for sales, operations, and manager roles
+  - Replay buffers (`history_limit`) to hydrate the last _n_ messages before each run
+  - CLI helper (`run_profile.py`) for scripted one-off questions per persona
+  - Multi-agent leadership briefing (`aggregated_briefing.py`) that orchestrates all personas
+  - Retrieval QA demo (`retrieval_qa_demo.py`) grounded in MemMachine episodic memory
+- **Use Case**: Quickly plug MemMachine into existing LangChain agents, RAG pipelines, or evaluation harnesses
+
+#### How MemMachine powers LangChain workflows
+- Every LangChain message routed through the adapter is written to `POST /v1/memories/episodic`, keeping MemMachine’s episodic store in sync with the chain’s chat history.
+- The adapter tags metadata (`message_type`, producer) so MemMachine can differentiate human, assistant, and system turns—perfect for downstream reranking or timeline visualizations.
+- Setting `load_remote_history=True` bootstraps the LangChain session with previously stored episodes retrieved via the MemMachine search endpoint, mirroring the behavior in the supplier demo.
+- Clearing history propagates to MemMachine through the `episodic/clear` API, ensuring test runs stay consistent across both systems.
+
+#### LangChain demo features
+- `demo_conversation.py` shows a `RunnableWithMessageHistory` chain using `ChatOpenAI`; run it and inspect the supplier React UI to see the new episodic events appear on the Memory Timeline.
+- Modular history factory pattern demonstrates how to bind LangChain session IDs to MemMachine sessions, letting different agents share or isolate memory.
+- Works seamlessly with custom tools or retrievers—swap in your agent logic while keeping MemMachine as the shared memory layer.
+- `run_profile.py` executes a single persona/question pair from the command line; perfect for scripted demos or CI checks.
+
+### 7. Streamlit Frontend (`frontend/`)
 - **Purpose**: Web-based testing interface and demonstration platform for all agents
 - **Port**: 8502 (configurable via Streamlit default)
 - **Features**:

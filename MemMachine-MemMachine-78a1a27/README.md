@@ -75,6 +75,99 @@ project in the **showcase** channel.
 Want to get started right away? Check out our
 [Quick Start Guide](https://docs.memmachine.ai).
 
+## Hackathon Demo Blueprint
+
+This repository now contains a full end-to-end demo that combines the MemMachine
+stack, a supplier FastAPI service, a React dashboard, and LangChain personas.
+
+**Architecture (textual)**
+
+```
+┌─────────────────────────────┐
+│ React Supplier Dashboard    │  ──▶  Displays health panel, quick prompts,
+│ (examples/amazon_suppliers) │       and the Memory Timeline fed by MemMachine
+└─────────────▲───────────────┘
+              │ REST
+┌─────────────┴───────────────┐
+│ Supplier FastAPI Service    │  ──▶  /supplier/ingest, /supplier/query and /health
+│ (examples/amazon_suppliers) │       routes orchestrate episodic/profile updates
+└─────────────▲───────────────┘
+              │ REST
+┌─────────────┴───────────────┐
+│ MemMachine API (Docker)     │  ──▶  /v1/memories/*, /v1/agents/* endpoints
+│  - Episodic → Neo4j         │       persist LangChain & supplier memories
+│  - Profile  → Postgres      │
+└─────────────▲───────────────┘
+              │ LCEL / REST
+┌─────────────┴───────────────┐
+│ LangChain Personas & Tools  │
+│  - run_profile.py           │  ──▶  Sales / Ops / Manager sessions
+│  - aggregated_briefing.py   │       synthesise leadership briefings
+│  - retrieval_qa_demo.py     │       answer questions via MemMachine retriever
+└─────────────────────────────┘
+```
+
+### Live demo flow
+
+```bash
+# 1) Start MemMachine infrastructure
+./memmachine-compose.sh
+
+# 2) Supplier backend (REST + LangChain-ready API)
+cd examples/amazon_suppliers
+source ../../.venv/bin/activate && source ../../.env
+POSTGRES_HOST=localhost POSTGRES_PORT=55432 POSTGRES_USER=memmachine \
+POSTGRES_PASSWORD=memmachine_password POSTGRES_DB=memmachine \
+MEMORY_BACKEND_URL=http://localhost:8080 SUPPLIER_PORT=8001 \
+SUPPLIER_SERVER_URL=http://localhost:8001 MODEL_API_KEY=$OPENAI_API_KEY \
+python supplier_server.py
+
+# 3) React dashboard (optional but great for storytelling)
+cd frontend/react-ui
+npm run dev -- --host
+
+# 4) LangChain personas
+cd ../../langchain
+source ../../.venv/bin/activate
+export OPENAI_API_KEY=sk-...              # same key as in .env
+python run_profile.py --profile profile_sales \
+  "Summarize outstanding negotiations for supplier SUP-202."
+python run_profile.py --profile profile_ops \
+  "Flag any logistics risks for supplier SUP-202."
+python run_profile.py --profile profile_manager \
+  "Create a leadership briefing for supplier SUP-202."
+
+# 5) Leadership briefing orchestrated from multiple personas
+python aggregated_briefing.py SUP-202 --history-limit 5
+
+# 6) Retrieval QA grounded in MemMachine memories
+python retrieval_qa_demo.py \
+  "What logistics risks exist for supplier SUP-202?" \
+  --session-id profile_ops
+```
+
+Open `http://localhost:8080/docs` to highlight:
+
+- `GET /v1/agents/{agent_id}/sessions` → shows LangChain session IDs
+- `POST /v1/memories/search` → displays the episodic entries just generated
+
+Then refresh `http://localhost:3000` to demonstrate the Memory Timeline and
+System Status panel reflecting the same data.
+
+## Future Scope
+
+- **Multi-agent orchestration:** extend `aggregated_briefing.py` with additional
+  personas (finance, procurement) and experiment with LangGraph for richer
+  workflows.
+- **Conflict & drift detection:** analyse episodic memories for contradictory
+  statements or outdated facts, storing “alerts” back in MemMachine.
+- **Vector hybrid search:** combine the MemMachine retriever with embedding
+  indexes for semantic + keyword retrieval across long time spans.
+- **UI launch actions:** wire the React dashboard to trigger LangChain personas
+  via an endpoint so non-technical users can kick off automated briefings.
+- **CI automation:** add pytest smoke tests that run the personas and assert the
+  resulting sessions through the REST API to guard against regressions.
+
 ## Installation
 
 MemMachine is distributed as a Docker container and Python package. For full
