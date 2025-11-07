@@ -1,0 +1,164 @@
+{
+  "$schema": "https://mintlify.com/docs.json",
+  "theme": "palm",
+  "name": "MemMachine Documentation",
+  "colors": {
+    "primary": "#005eb9",
+    "light": "#429cf1",
+    "dark": "#a8bacb"
+  },
+  "integrations": {
+    "gtm": {
+      "tagId": "GTM-WDX7ZBC7"
+    }
+  },
+  "favicon": "favicon.ico",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Docs",
+        "groups": [
+          {
+            "group": "Getting Started",
+            "icon": "rocket",
+            "pages": [
+              "getting_started/introduction",
+              "getting_started/quickstart",
+              "getting_started/benchmarks",
+              "getting_started/faqs"
+            ]
+          },
+          {
+            "group": "Install Guides",
+            "icon": "map",
+            "pages": [
+              "install_guide/introduction",
+              "install_guide/install_guide",
+              "install_guide/aws_bedrock",
+              "install_guide/ollama"
+            ]
+          },
+          {
+            "group": "Core Concepts",
+            "icon": "brain",
+            "pages": [
+              "core_concepts/agentic_workflow",
+              "core_concepts/agentic_memory"
+            ]
+          },
+          {
+            "group": "Open Source",
+            "icon": "globe",
+            "pages": [
+              "open_source/introduction",
+              "open_source/configuration",
+              "open_source/memory_types",
+              "open_source/databases",
+              "open_source/community"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "API Reference",
+        "groups": [
+          {
+            "group": "Introduction",
+            "pages": [
+              "api_reference/intro"
+            ]
+          },
+          {
+            "group": "PythonSDK",
+            "pages": [
+              "api_reference/python/episodic_memory",
+              "api_reference/python/episodic_memory_manager",
+              "api_reference/python/memory_types",
+              "api_reference/python/profile_memory"
+            ]
+          },
+          {
+            "group": "API Reference",
+            "openapi": "openapi.json",
+            "playground": {
+              "display": "interactive"
+            },
+            "examples": {
+              "languages": ["python"],
+              "defaults": "required"
+            }
+          }
+        ]
+      },
+      {
+        "tab": "Examples",
+        "groups": [
+          {
+            "group": "Examples",
+            "pages": [
+              "examples/introduction",
+              "examples/agents",
+              "examples/python",
+              "examples/rest",
+              "examples/mcp"
+            ]
+          }
+        ]
+      }
+    ],
+    "global": {
+      "anchors": [
+        {
+          "anchor": "Documentation",
+          "href": "https://docs.memmachine.ai/",
+          "icon": "book-open-cover"
+        },
+        {
+          "anchor": "Community",
+          "href": "https://memmachine.ai/community",
+          "icon": "slack"
+        },
+        {
+          "anchor": "Blog",
+          "href": "https://memmachine.ai/blog",
+          "icon": "newspaper"
+        }
+      ]
+    }
+  },
+  "logo": {
+    "light": "/logo/memmachine-blue-logo-banner.png",
+    "dark": "/logo/memmachine-white-logo-banner.png"
+  },
+  "navbar": {
+    "links": [
+      {
+        "label": "Support",
+        "href": "mailto:support@memmachine.ai"
+      }
+    ],
+    "primary": {
+      "type": "button",
+      "label": "Dashboard",
+      "href": "https://dashboard.mintlify.com"
+    }
+  },
+  "contextual": {
+    "options": [
+      "copy",
+      "view",
+      "chatgpt",
+      "claude",
+      "perplexity",
+      "mcp",
+      "cursor",
+      "vscode"
+    ]
+  },
+  "footer": {
+    "socials": {
+      "x": "https://x.com/memmachine",
+      "github": "https://github.com/memmachine"
+    }
+  }
+}

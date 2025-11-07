@@ -1,0 +1,78 @@
+[build-system]
+requires = ["uv_build"]
+build-backend = "uv_build"
+
+[project]
+name = "memmachine"
+version = "0.1.0"
+dependencies = [
+    "asyncpg>=0.30.0",
+    "boto3>=1.40.40",
+    "dotenv>=0.9.9",
+    "fastapi>=0.116.1",
+    "fastmcp>=2.12.0",
+    "langchain-aws>=0.2.33",
+    "neo4j>=5.28.2",
+    "nltk>=3.9.1",
+    "openai>=1.104.2",
+    "pgvector>=0.4.1",
+    "prometheus-client>=0.22.1",
+    "pydantic>=2.11.7",
+    "pyyaml>=6.0.2",
+    "rank-bm25>=0.2.2",
+    "sqlalchemy>=2.0.43",
+    "uvicorn>=0.35.0",
+]
+requires-python = ">= 3.12"
+authors = [
+  {name="MemMachine", email="noreply@memmachine.ai"},
+]
+description = "MemMachine is an open-source memory layer for AI agents, giving your creations short-term, long-term, and personalization memory, enabling them to learn, adapt, and remember."
+readme = "README.md"
+keywords = ["memmachine"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+]
+license = "Apache-2.0"
+license-files = ["LICENSE"]
+
+[project.optional-dependencies]
+gpu = [
+    "sentence-transformers>=5.1.0",
+]
+
+[project.scripts]
+memmachine-server = "memmachine.server.app:main"
+memmachine-sync-profile-schema = "memmachine.profile_memory.storage.syncschema:main"
+memmachine-nltk-setup = "memmachine:setup_nltk"
+
+[project.urls]
+Homepage = "https://github.com/MemMachine/MemMachine"
+Issues = "https://github.com/MemMachine/MemMachine/issues"
+
+[dependency-groups]
+dev = [
+    "mypy>=1.18.2",
+    "pytest>=8.4.2",
+    "pytest-asyncio>=1.2.0",
+    "ruff>=0.13.2",
+    "testcontainers[neo4j,postgres]>=4.13.1",
+]
+
+[tool.mypy]
+follow_untyped_imports = true
+exclude = ["venv/", ".venv/"]
+plugins = ['pydantic.mypy']
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W"]
+ignore = ["E501"]
+
+[tool.pytest.ini_options]
+asyncio_default_fixture_loop_scope = "session"
+asyncio_default_test_loop_scope = "session"
+
+markers = [
+    "integration: mark the test as an integration test",
+]

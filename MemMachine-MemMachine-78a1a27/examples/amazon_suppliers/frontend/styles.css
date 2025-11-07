@@ -1,0 +1,16 @@
+/* Amazon Supplier Management Styles */
+.answer {
+    background-color: #f8f9fa;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    border-left: 4px solid #0066cc;
+    margin: 1rem 0;
+}
+
+.vertical-divider {
+    width: 2px;
+    height: 100%;
+    background-color: #dee2e6;
+    margin: 0 auto;
+}
+

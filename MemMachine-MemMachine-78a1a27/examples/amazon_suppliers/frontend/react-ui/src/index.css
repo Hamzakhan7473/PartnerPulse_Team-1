@@ -1,0 +1,382 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-slate-50 text-slate-900;
+    margin: 0;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+      'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+      sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  code {
+    font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+      monospace;
+  }
+
+  * {
+    @apply border-slate-200;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply px-6 py-3 bg-slate-800 text-white rounded-lg font-semibold 
+           hover:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-500 
+           focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed 
+           transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-[1.02] active:scale-[0.98];
+  }
+
+  .btn-secondary {
+    @apply px-6 py-3 bg-slate-100 text-slate-700 rounded-lg font-semibold 
+           hover:bg-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-300 
+           focus:ring-offset-2 transition-all duration-200 border border-slate-200;
+  }
+
+  .input-field {
+    @apply w-full px-4 py-2.5 border border-slate-300 rounded-lg 
+           focus:ring-2 focus:ring-slate-500 focus:border-slate-500 
+           transition-all duration-200 bg-white text-slate-900 
+           placeholder-slate-400 hover:border-slate-400;
+  }
+
+  .card {
+    @apply bg-white rounded-xl shadow-md border border-slate-200 p-6;
+  }
+
+  .card-header {
+    @apply text-2xl font-bold text-slate-900 mb-2;
+  }
+
+  .card-subtitle {
+    @apply text-slate-600 mb-6 text-sm;
+  }
+
+  /* Animated background particles */
+  .animated-bg {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .animated-bg::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: 
+      radial-gradient(circle at 20% 30%, rgba(59, 130, 246, 0.1) 0%, transparent 50%),
+      radial-gradient(circle at 40% 80%, rgba(34, 197, 94, 0.08) 0%, transparent 50%);
+    animation: backgroundShift 20s ease-in-out infinite;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .particle {
+    position: absolute;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(59, 130, 246, 0.8) 0%, rgba(59, 130, 246, 0.4) 40%, rgba(59, 130, 246, 0) 100%);
+    box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  .particle-purple {
+    background: radial-gradient(circle, rgba(59, 130, 246, 0.8) 0%, rgba(59, 130, 246, 0.4) 40%, rgba(59, 130, 246, 0) 100%);
+    box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+  }
+
+  .particle-green {
+    background: radial-gradient(circle, rgba(34, 197, 94, 0.8) 0%, rgba(34, 197, 94, 0.4) 40%, rgba(34, 197, 94, 0) 100%);
+    box-shadow: 0 0 10px rgba(34, 197, 94, 0.5);
+  }
+
+  @keyframes float {
+    0% {
+      transform: translate(0, 0) scale(1);
+      opacity: 0.6;
+    }
+    25% {
+      transform: translate(150px, -120px) scale(1.4);
+      opacity: 0.9;
+    }
+    50% {
+      transform: translate(-80px, -200px) scale(0.8);
+      opacity: 0.7;
+    }
+    75% {
+      transform: translate(180px, -60px) scale(1.2);
+      opacity: 0.8;
+    }
+    100% {
+      transform: translate(0, 0) scale(1);
+      opacity: 0.6;
+    }
+  }
+
+  @keyframes floatReverse {
+    0% {
+      transform: translate(0, 0) scale(1);
+      opacity: 0.6;
+    }
+    25% {
+      transform: translate(-150px, 120px) scale(0.8);
+      opacity: 0.8;
+    }
+    50% {
+      transform: translate(80px, 200px) scale(1.4);
+      opacity: 0.9;
+    }
+    75% {
+      transform: translate(-180px, 60px) scale(1.0);
+      opacity: 0.7;
+    }
+    100% {
+      transform: translate(0, 0) scale(1);
+      opacity: 0.6;
+    }
+  }
+
+  @keyframes floatDiagonal {
+    0% {
+      transform: translate(0, 0) rotate(0deg);
+      opacity: 0.3;
+    }
+    50% {
+      transform: translate(200px, 200px) rotate(180deg);
+      opacity: 0.6;
+    }
+    100% {
+      transform: translate(0, 0) rotate(360deg);
+      opacity: 0.3;
+    }
+  }
+
+  @keyframes floatCircular {
+    0% {
+      transform: translate(0, 0) rotate(0deg);
+      opacity: 0.4;
+    }
+    25% {
+      transform: translate(80px, -80px) rotate(90deg);
+      opacity: 0.6;
+    }
+    50% {
+      transform: translate(0, -160px) rotate(180deg);
+      opacity: 0.5;
+    }
+    75% {
+      transform: translate(-80px, -80px) rotate(270deg);
+      opacity: 0.6;
+    }
+    100% {
+      transform: translate(0, 0) rotate(360deg);
+      opacity: 0.4;
+    }
+  }
+
+  @keyframes moveLine {
+    0% {
+      transform: translateX(-200px) translateY(0);
+      opacity: 0.1;
+    }
+    50% {
+      transform: translateX(calc(100vw + 200px)) translateY(100px);
+      opacity: 0.3;
+    }
+    100% {
+      transform: translateX(-200px) translateY(0);
+      opacity: 0.1;
+    }
+  }
+
+  @keyframes backgroundShift {
+    0%, 100% {
+      transform: translate(0, 0) scale(1);
+    }
+    50% {
+      transform: translate(20px, 20px) scale(1.1);
+    }
+  }
+
+  .particle-1 {
+    width: 8px;
+    height: 8px;
+    top: 20%;
+    left: 10%;
+    animation: float 15s ease-in-out infinite;
+  }
+
+  .particle-2 {
+    width: 10px;
+    height: 10px;
+    top: 60%;
+    left: 80%;
+    animation: floatReverse 18s ease-in-out infinite;
+  }
+
+  .particle-3 {
+    width: 6px;
+    height: 6px;
+    top: 80%;
+    left: 30%;
+    animation: float 20s ease-in-out infinite;
+  }
+
+  .particle-4 {
+    width: 9px;
+    height: 9px;
+    top: 40%;
+    left: 70%;
+    animation: floatReverse 16s ease-in-out infinite;
+  }
+
+  .particle-5 {
+    width: 8px;
+    height: 8px;
+    top: 10%;
+    left: 50%;
+    animation: float 22s ease-in-out infinite;
+  }
+
+  .particle-6 {
+    width: 10px;
+    height: 10px;
+    top: 70%;
+    left: 20%;
+    animation: floatReverse 17s ease-in-out infinite;
+  }
+
+  .particle-7 {
+    width: 6px;
+    height: 6px;
+    top: 30%;
+    left: 90%;
+    animation: float 19s ease-in-out infinite;
+  }
+
+  .particle-8 {
+    width: 9px;
+    height: 9px;
+    top: 90%;
+    left: 60%;
+    animation: floatReverse 21s ease-in-out infinite;
+  }
+
+  .particle-9 {
+    width: 8px;
+    height: 8px;
+    top: 15%;
+    left: 25%;
+    animation: floatDiagonal 25s linear infinite;
+  }
+
+  .particle-10 {
+    width: 10px;
+    height: 10px;
+    top: 45%;
+    left: 15%;
+    animation: floatCircular 30s linear infinite;
+  }
+
+  .particle-11 {
+    width: 6px;
+    height: 6px;
+    top: 75%;
+    left: 85%;
+    animation: floatDiagonal 28s linear infinite;
+  }
+
+  .particle-12 {
+    width: 9px;
+    height: 9px;
+    top: 25%;
+    left: 65%;
+    animation: floatCircular 24s linear infinite;
+  }
+
+  .particle-13 {
+    width: 8px;
+    height: 8px;
+    top: 55%;
+    left: 45%;
+    animation: float 18s ease-in-out infinite;
+  }
+
+  .particle-14 {
+    width: 10px;
+    height: 10px;
+    top: 85%;
+    left: 75%;
+    animation: floatReverse 20s ease-in-out infinite;
+  }
+
+  .particle-15 {
+    width: 6px;
+    height: 6px;
+    top: 5%;
+    left: 35%;
+    animation: floatDiagonal 22s linear infinite;
+  }
+
+  .particle-16 {
+    width: 9px;
+    height: 9px;
+    top: 65%;
+    left: 55%;
+    animation: floatCircular 26s linear infinite;
+  }
+
+  /* Moving lines */
+  .moving-line {
+    position: absolute;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.6), transparent);
+    box-shadow: 0 0 8px rgba(59, 130, 246, 0.4);
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  .line-1 {
+    width: 300px;
+    top: 20%;
+    left: 0;
+    animation: moveLine 12s ease-in-out infinite;
+  }
+
+  .line-2 {
+    width: 250px;
+    top: 50%;
+    left: 0;
+    animation: moveLine 15s ease-in-out infinite 2s;
+  }
+
+  .line-3 {
+    width: 280px;
+    top: 80%;
+    left: 0;
+    animation: moveLine 18s ease-in-out infinite 4s;
+  }
+
+  .line-4 {
+    width: 260px;
+    top: 35%;
+    left: 0;
+    animation: moveLine 14s ease-in-out infinite 1s;
+  }
+
+  .line-5 {
+    width: 240px;
+    top: 70%;
+    left: 0;
+    animation: moveLine 16s ease-in-out infinite 3s;
+  }
+}
+

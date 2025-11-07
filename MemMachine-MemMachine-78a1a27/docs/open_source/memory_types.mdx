@@ -1,0 +1,143 @@
+---
+title: "Memory Types"
+description: "How MemMachine organizes Memory"
+icon: "memory"
+---
+## Memory Types
+
+MemMachine works as an intelligent memory layer on top of a user's Agentic LLM experience.  It gathers input via Python APIs in a Memory Instance, then determines if that input is profile, short-term and/or long-term:  
+ - **Profile memory** consists of information specific to the user and their experience.  
+ - **Short-term memory** consists of episodic memory and summaries of the episodic memory.  A raw episode consists of 1 message. 
+ - **Long-term memory** consists of a batch of episodes that is generated from the short-term memories.  The Episode batch is then ranked using a Reranker and deduplicated for the most frequent hits.  
+
+## How does MemMachine sort into it's Memory Types?
+
+MemMachine utilizes an embedder to break apart user/agent language into distinct computer understandable derivatives.  These derivatives are then passed through a re-ranker which compares the results to those found in the long-term memory buckets, then returns the top, sorted matches.
+
+After the re-ranker completes it's activity, memory is stored into an associated database.  
+
+
+
+### Profile Memory
+
+Profile memory specifically focuses on information and data specific to a user and their experience.  The data is stored in a PostgreSQL database.
+
+**Memory Storage Process**
+     1. Raw user messages go into session_history
+     2. An LLM analyzes conversations to extract meaningful knowledge
+     3. Structured knowledge gets stored in memvergeprofile with vector embeddings
+     4. The citations table links each piece of knowledge back to its source conversations
+
+**Memory Retrieval Process**
+     1. **Query**: User asks a question or system needs context
+     2. **Semantic Search**: System uses vector embeddings to find relevant knowledge
+     3. **Retrieval**: Returns matching profile entries with their associated conversation sources
+     4. **Context**: Citations provide traceability back to original conversations
+
+
+#### Database Profile Memory Table Structures
+
+MemMachine is built on a **PostgreSQL database**, which uses the pgvector extension to perform an efficient vector similarity search. Think of this as a way to instantly find similar or related information. The system's memory is organized across **three main tables** that work together to store user profiles, conversation history, and the key relationships between them.
+
+
+<Tabs>
+    <Tab title ="Profile Table">
+ **Description:** This is the main table for storing a user's profile and their features. We use **vector embeddings** in this table to give us a powerful way to perform **semantic searches**.
+ 
+ **Purpose:** This is where we store a user's profile information. We use **key-value pairs** and **vector embeddings** to make it easy to find relevant user characteristics quickly through a **semantic search**.
+
+Here's an example Profile table:
+```bash
+Column   |           Type           | Collation | Nullable |             Default              
+------------+--------------------------+-----------+----------+----------------------------------
+ id         | integer                  |           | not null | nextval('prof_id_seq'::regclass)
+ user_id    | text                     |           | not null | 
+ tag        | text                     |           | not null | 'Miscellaneous'::text
+ feature    | text                     |           | not null | 
+ value      | text                     |           | not null | 
+ create_at  | timestamp with time zone |           | not null | CURRENT_TIMESTAMP
+ update_at  | timestamp with time zone |           | not null | CURRENT_TIMESTAMP
+ embedding  | vector(1536)             |           | not null | 
+ metadata   | jsonb                    |           | not null | '{}'::jsonb
+ isolations | jsonb                    |           | not null | '{}'::jsonb
+Indexes:
+    "prof_pkey" PRIMARY KEY, btree (id)
+Referenced by:
+    TABLE "citations" CONSTRAINT "citations_profile_id_fkey" FOREIGN KEY (profile_id) REFERENCES prof(id) ON DELETE CASCADE
+```
+
+Here are the fields you'll find in this table:
+
+| Field       | Explanation                                                  |
+| ----------- | ------------------------------------------------------------ |
+| id        | Unique identifier for each knowledge entry. |
+| user_id   | This integer is a unique ID specific to the user that is interacting with the agent.  The ID organizes all information about the user, and only this user. |
+| tag       | A high-level categorization (e.g., "Preferences", "Skills", "Background"). |
+| feature   | An executive summary of the information (e.g., "likes_pizza", "programming_language") |
+| value     | Detailed content of the knowledge (e.g., "Margherita with extra cheese", "Python, JavaScript, Go") |
+| create_at | This is a timestamp for when the listing in the table was created. |
+| update_at | This is a timestamp for when the listing in the table was last updated. |
+| embedding | MemMachine creates a detailed 1536-trait numerical fingerprint for each memory, enabling smart, meaning-based searches to find the most relevant context. |
+| metadata  | A JSONB field for storing additional structured information about the knowledge entry. |
+| isolations | A JSONB field for storing isolation parameters, which can be used to restrict access to certain knowledge entries based on specific criteria. |
+
+<Note> The `unique_utfv` constraint ensures no duplicate knowledge entries for the same user, tag, feature, and value combination. </Note>
+</Tab>
+    <Tab title="History Table">
+
+**Description:** This table holds all the messages and interactions from a conversation. It's how the system can remember **context** and refer back to what was said, allowing for a more coherent and helpful experience.
+
+**Purpose:** This table maintains a **history** of conversations and interactions. This record helps build comprehensive user profiles and provides crucial **context**.
+
+Below is an example of a History Table:
+```bash
+   Column   |           Type           | Collation | Nullable |               Default               
+------------+--------------------------+-----------+----------+-------------------------------------
+ id         | integer                  |           | not null | nextval('history_id_seq'::regclass)
+ user_id    | text                     |           | not null | 
+ content    | text                     |           | not null | 
+ create_at  | timestamp with time zone |           | not null | CURRENT_TIMESTAMP
+ metadata   | jsonb                    |           | not null | '{}'::jsonb
+ isolations | jsonb                    |           | not null | '{}'::jsonb
+Indexes:
+    "history_pkey" PRIMARY KEY, btree (id)
+Referenced by:
+    TABLE "citations" CONSTRAINT "citations_content_id_fkey" FOREIGN KEY (content_id) REFERENCES history(id) ON DELETE CASCADE
+```
+Here are the fields you'll find in this table:
+
+| Field       | Explanation                                                  |
+| ----------- | ------------------------------------------------------------ |
+| id          | Unique identifier for each conversation entry. |
+| user_id     | This integer is a unique ID specific to the user that is interacting with the agent.  The ID organizes all information about the user, and only this user. |
+| content     | The actual conversation text |
+| create_at  | This is a timestamp for when the listing in the table was created. |
+| metadata    | A JSONB field for storing additional structured information about the conversation entry. |
+| isolations | A JSONB field for storing isolation parameters, which can be used to restrict access to certain conversation entries based on specific criteria. |
+
+</Tab>
+    <Tab title="Citations Table">
+
+**Description:** This table acts as a link between a user's profile and their conversation history. It connects profile features to the specific conversations that support or cite them.
+
+** Purpose:** This table links profile features to the conversation history that created them. This lets you trace exactly where a feature came from and confirm its validity.
+
+Below is an example of a Citations Table:
+```bash
+    Column   |  Type   | Collation | Nullable | Default 
+------------+---------+-----------+----------+---------
+ profile_id | integer |           | not null | 
+ content_id | integer |           | not null | 
+Indexes:
+    "citations_pkey" PRIMARY KEY, btree (profile_id, content_id)
+Foreign-key constraints:
+    "citations_content_id_fkey" FOREIGN KEY (content_id) REFERENCES history(id) ON DELETE CASCADE
+    "citations_profile_id_fkey" FOREIGN KEY (profile_id) REFERENCES prof(id) ON DELETE CASCADEgit st
+```
+This table consists of the following fields:
+| Field       | Explanation                                                  |
+| ----------- | ------------------------------------------------------------ |
+| profile_id  | References the knowledge entry in `memvergeprofile` |
+| content_id  | References the conversation source in `session_history` |
+    </Tab>
+</Tabs>
